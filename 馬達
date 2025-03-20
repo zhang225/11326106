@@ -1,0 +1,27 @@
+// 定義 LED 和按鈕的引腳
+const int buttonPin = 2; // 按鈕連接到 D2
+const int ledPin = 13;   // LED 連接到 D13
+
+// 儲存按鈕狀態
+int buttonState = 0;
+int lastButtonState = 0;
+bool ledState = false;
+
+void setup() {
+  pinMode(buttonPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin);
+
+  if (buttonState == HIGH && lastButtonState == LOW) {
+    ledState = !ledState; // 切換 LED 狀態
+    digitalWrite(ledPin, ledState ? HIGH : LOW);
+    Serial.println(ledState ? "按鈕已按下，LED 開啟" : "按鈕已按下，LED 關閉");
+    delay(200); // 按鍵消抖動
+  }
+  
+  lastButtonState = buttonState;
+}
