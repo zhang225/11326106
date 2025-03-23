@@ -1,27 +1,16 @@
-// 定義 LED 和按鈕的引腳
-const int buttonPin = 2; // 按鈕連接到 D2
-const int ledPin = 13;   // LED 連接到 D13
+#include <Servo.h>
 
-// 儲存按鈕狀態
-int buttonState = 0;
-int lastButtonState = 0;
-bool ledState = false;
+Servo myservo;  // 創建一個伺服馬達對象
 
 void setup() {
-  pinMode(buttonPin, INPUT);
-  pinMode(ledPin, OUTPUT);
-  Serial.begin(9600);
+  myservo.attach(9);  // 將伺服馬達連接到 Arduino 的 9 號引腳
 }
 
 void loop() {
-  buttonState = digitalRead(buttonPin);
-
-  if (buttonState == HIGH && lastButtonState == LOW) {
-    ledState = !ledState; // 切換 LED 狀態
-    digitalWrite(ledPin, ledState ? HIGH : LOW);
-    Serial.println(ledState ? "按鈕已按下，LED 開啟" : "按鈕已按下，LED 關閉");
-    delay(200); // 按鍵消抖動
-  }
-  
-  lastButtonState = buttonState;
+  myservo.write(0);   // 將伺服馬達轉到 0 度
+  delay(1000);        // 等待 1 秒
+  myservo.write(90);  // 將伺服馬達轉到 90 度
+  delay(1000);        // 等待 1 秒
+  myservo.write(180); // 將伺服馬達轉到 180 度
+  delay(1000);        // 等待 1 秒
 }
