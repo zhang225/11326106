@@ -1,0 +1,10 @@
+// 配線圖說明:// 配線圖說明:
+
+
+
+
+// 黃線 -> Arduino D9// 黑線 -> Arduino GND// 紅線 -> Arduino 5V// 紅線 -> Arduino 5V
+// 黑線 -> Arduino GND
+// 黃線 -> Arduino D9
+
+// ...existing code...
