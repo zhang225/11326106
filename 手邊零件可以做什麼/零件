@@ -1,0 +1,94 @@
+#include <Servo.h>
+#include <Adafruit_TCS34725.h> // 顏色感測器程式庫
+
+const int mercurySwitchPin = 2; // 水銀開關接到 D2
+const int flameSensorPin = 3;   // 火焰感測器接到 D3
+const int ledPin = 13;          // LED 燈接到 D13
+const int buzzerPin = 9;        // 蜂鳴器接到 D9
+Servo myservo;                  // 伺服馬達物件
+
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
+
+void setup() {
+  pinMode(mercurySwitchPin, INPUT);
+  pinMode(flameSensorPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+  myservo.attach(10); // 伺服馬達接到 D10
+
+  if (tcs.begin()) {
+    Serial.begin(9600);
+    Serial.println("顏色感測器初始化成功");
+  } else {
+    Serial.println("無法找到顏色感測器，請檢查連接");
+    while (1);
+  }
+}
+
+void loop() {
+  int tiltState = digitalRead(mercurySwitchPin);
+  int flameState = digitalRead(flameSensorPin);
+
+  if (flameState == HIGH) { // 偵測到火焰
+    handleFlameDetected();
+  } else if (tiltState == HIGH) { // 偵測到傾斜
+    digitalWrite(ledPin, HIGH); // LED 亮起
+    tone(buzzerPin, 1000);      // 蜂鳴器發出 1000Hz 聲音
+    rotateServo();              // 伺服馬達旋轉模擬警報器
+    detectColor();              // 偵測顏色並執行對應動作
+  } else {
+    digitalWrite(ledPin, LOW);  // LED 關閉
+    noTone(buzzerPin);          // 停止蜂鳴器
+    myservo.write(0);           // 伺服馬達回到初始位置
+  }
+}
+
+void rotateServo() {
+  for (int angle = 0; angle <= 90; angle += 10) {
+    myservo.write(angle); // 伺服馬達從 0 轉到 90 度
+    delay(50);
+  }
+  for (int angle = 90; angle >= 0; angle -= 10) {
+    myservo.write(angle); // 伺服馬達從 90 轉回 0 度
+    delay(50);
+  }
+}
+
+void detectColor() {
+  uint16_t r, g, b, c;
+  tcs.getRawData(&r, &g, &b, &c);
+
+  Serial.print("紅色: "); Serial.print(r);
+  Serial.print(" 綠色: "); Serial.print(g);
+  Serial.print(" 藍色: "); Serial.print(b);
+  Serial.print(" 清晰度: "); Serial.println(c);
+
+  if (r > g && r > b) {
+    Serial.println("偵測到紅色");
+    myservo.write(90); // 伺服馬達轉到 90 度
+  } else if (g > r && g > b) {
+    Serial.println("偵測到綠色");
+    tone(buzzerPin, 500); // 蜂鳴器發出 500Hz 聲音
+  } else if (b > r && b > g) {
+    Serial.println("偵測到藍色");
+    digitalWrite(ledPin, HIGH); // LED 閃爍
+    delay(500);
+    digitalWrite(ledPin, LOW);
+  } else {
+    Serial.println("未偵測到明顯顏色");
+  }
+}
+
+void handleFlameDetected() {
+  Serial.println("偵測到火焰！");
+  digitalWrite(ledPin, HIGH); // LED 閃爍
+  for (int i = 0; i < 5; i++) {
+    tone(buzzerPin, 2000); // 蜂鳴器發出高頻聲音
+    delay(200);
+    noTone(buzzerPin);
+    delay(200);
+  }
+  myservo.write(180); // 伺服馬達轉到 180 度模擬滅火
+  delay(1000);
+  myservo.write(0);   // 伺服馬達回到初始位置
+}
